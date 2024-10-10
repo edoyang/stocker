@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stocker/screens/home_screen.dart';
+import 'package:stocker/screens/login_screen.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -9,7 +9,7 @@ class SplashScreen extends StatelessWidget {
     // Schedule a future action to navigate to HomeScreen after 3 seconds.
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const Login()),
         (route) => false,
       );
     });

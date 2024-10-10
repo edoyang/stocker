@@ -1,31 +1,39 @@
 import React, { useState } from "react";
 import BarcodeScannerComponent from "react-qr-barcode-scanner";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setProductName,
+  setProductBarcode,
+  setProductImage,
+} from "../../redux/slices/productSlice";
 import axios from "axios";
 
 function AddProduct() {
-  const [barcode, setBarcode] = useState("");
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const dispatch = useDispatch();
+  const { productName, productBarcode, productImage } = useSelector(
+    (state) => state.product
+  );
 
-  const [formData, setFormData] = useState({
-    productName: "",
-    productBarcode: "",
-    productImage: "",
-  });
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    if (name === "productName") {
+      dispatch(setProductName(value));
+    } else if (name === "productBarcode") {
+      dispatch(setProductBarcode(value));
+    } else if (name === "productImage") {
+      dispatch(setProductImage(value));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const finalData = {
-      ...formData,
-      productBarcode: barcode,
+      productName,
+      productBarcode,
+      productImage,
     };
 
     axios
@@ -41,7 +49,7 @@ function AddProduct() {
 
   const handleScan = (err, result) => {
     if (result) {
-      setBarcode(result.text);
+      dispatch(setProductBarcode(result.text));
       setIsScannerOpen(false);
     }
   };
@@ -64,7 +72,7 @@ function AddProduct() {
             type="text"
             name="productName"
             placeholder="Product Name"
-            value={formData.productName}
+            value={productName}
             onChange={handleInputChange}
           />
         </div>
@@ -76,9 +84,9 @@ function AddProduct() {
             name="productBarcode"
             id="productBarcode"
             placeholder="Product Barcode"
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            onClick={() => handleBarcodeClick()}
+            value={productBarcode}
+            onChange={handleInputChange}
+            onClick={handleBarcodeClick}
           />
         </div>
 
@@ -88,7 +96,7 @@ function AddProduct() {
             type="text"
             name="productImage"
             placeholder="Product Image"
-            value={formData.productImage}
+            value={productImage}
             onChange={handleInputChange}
           />
         </div>
