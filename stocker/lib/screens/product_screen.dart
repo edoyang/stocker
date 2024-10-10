@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -20,49 +21,83 @@ class ProductScreenState extends State<ProductScreen> {
     fetchProducts();
   }
 
+  Future<String?> _getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('jwtToken');
+  }
+
   // Fetch product data from the API
   Future<void> fetchProducts() async {
-    setState(() {
-      isLoading = true;
-    });
+    String? token = await _getToken();
 
-    final response = await http.get(
-        Uri.parse('https://stocker-server.vercel.app/api/products/expired'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> productList = json.decode(response.body);
+    if (token != null) {
       setState(() {
-        products = productList;
-        isLoading = false;
+        isLoading = true;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      // Show an alert dialog if fetching fails
-      _showAlert("Error", "Failed to load products");
-    }
-  }
 
-  // Function to collect the item
-  Future<void> collectProduct(String barcode) async {
-    final url = Uri.parse(
-        'https://stocker-server.vercel.app/api/product/collect/$barcode');
+      final response = await http.get(
+        Uri.parse('https://stocker-server.vercel.app/api/products/expired'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
-    try {
-      final response = await http.post(url);
       if (response.statusCode == 200) {
-        _showAlert('Success', 'Item collected successfully');
-        await fetchProducts(); // Refresh the products after collection
+        final List<dynamic> productList = json.decode(response.body);
+        setState(() {
+          products = productList;
+          isLoading = false;
+        });
+      } else if (response.statusCode == 401) {
+        _showAlert(
+            "Authorization Error", "Session expired. Please log in again.");
       } else {
-        _showAlert('Error', 'Failed to collect the item');
+        setState(() {
+          isLoading = false;
+        });
+        _showAlert("Error", "Failed to load products");
       }
-    } catch (e) {
-      _showAlert('Error', 'An error occurred while collecting the item');
+    } else {
+      _showAlert("Authorization Error", "User is not logged in");
     }
   }
 
-  // Function to show alert dialog
+  // Collect product based on barcode
+  Future<void> collectProduct(String barcode) async {
+    String? token = await _getToken();
+
+    if (token != null) {
+      final url = Uri.parse(
+          'https://stocker-server.vercel.app/api/product/collect/$barcode');
+
+      try {
+        final response = await http.post(
+          url,
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          _showAlert('Success', 'Item collected successfully');
+          await fetchProducts(); // Refresh the products after collection
+        } else if (response.statusCode == 401) {
+          _showAlert(
+              'Authorization Error', 'Session expired. Please log in again.');
+        } else {
+          _showAlert('Error', 'Failed to collect the item');
+        }
+      } catch (e) {
+        _showAlert('Error', 'An error occurred while collecting the item');
+      }
+    } else {
+      _showAlert('Authorization Error', 'User is not logged in');
+    }
+  }
+
+  // Function to show confirmation dialog
   void _showConfirmationDialog(BuildContext context, String barcode) {
     showDialog(
       context: context,
@@ -90,7 +125,7 @@ class ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  // Function to show alert message after API response
+  // Function to show alert dialog
   void _showAlert(String title, String message) {
     showDialog(
       context: context,

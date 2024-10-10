@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // To parse JSON
-import 'package:shared_preferences/shared_preferences.dart'; // To store JWT
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stocker/screens/home_screen.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -16,36 +17,33 @@ class LoginState extends State<Login> {
   final Logger _logger = Logger();
 
   // Controllers to capture user input
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   // Function to handle login button press
   Future<void> _handleLogin() async {
-    final String username = _usernameController.text;
+    final String email = _emailController.text;
     final String password = _passwordController.text;
 
-    // Log username and password
-    _logger.i('Username: $username');
+    // Log email and password
+    _logger.i('email: $email');
     _logger.i('Password: $password');
 
-    if (username.isNotEmpty && password.isNotEmpty) {
+    if (email.isNotEmpty && password.isNotEmpty) {
       try {
         // Construct the login request
         final response = await http.post(
-          Uri.parse(
-              'https://stocker-server.vercel.app/api/user/login'), // Your server's login endpoint
+          Uri.parse('https://stocker-server.vercel.app/api/user/login'),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: jsonEncode(<String, String>{
-            'email': username, // Assuming email is used as the login field
+            'email': email,
             'password': password,
           }),
         );
 
-        if (!mounted) {
-          return; // Ensure the widget is still mounted before using the context
-        }
+        if (!mounted) return;
 
         // Capture the context before the async call
         final BuildContext currentContext = context;
@@ -55,14 +53,17 @@ class LoginState extends State<Login> {
           // Parse the JSON response
           final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-          // Log the JWT token
-          _logger.i('JWT Token: ${responseData['token']}');
+          // Log the JWT token and username
+          // _logger.i('JWT Token: ${responseData['token']}');
+          // _logger.i('Username: ${responseData['user']['username']}');
 
-          // Save the token using shared_preferences
+          // Save the token and username using SharedPreferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('jwtToken', responseData['token']);
+          await prefs.setString(
+              'username', responseData['user']['username']); // Save username
 
-          // Show success message
+          // Show success message and token
           if (mounted) {
             ScaffoldMessenger.of(currentContext).showSnackBar(
               const SnackBar(content: Text('Login Successful')),
@@ -71,7 +72,12 @@ class LoginState extends State<Login> {
 
           // Redirect or navigate to another screen after login (e.g., home screen)
           if (mounted) {
-            Navigator.pushReplacementNamed(currentContext, '/home');
+            Navigator.of(currentContext).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) =>
+                    const HomeScreen(), // Push to HomeScreen widget directly
+              ),
+            );
           }
         } else {
           // If login fails, show an error
@@ -112,9 +118,9 @@ class LoginState extends State<Login> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Username (Email) field
+            // Email field
             TextField(
-              controller: _usernameController,
+              controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'Email',
                 border: OutlineInputBorder(),

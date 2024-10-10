@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:barcode_scan2/barcode_scan2.dart';
 import 'package:stocker/services/product_service.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -30,55 +31,84 @@ class AddProductScreenState extends State<AddProductScreen> {
   }
 
   Future<void> _fetchProductDetails(String barcode) async {
-    final productData = await _productService.fetchProductDetails(barcode);
+    String? token = await _getToken();
 
-    if (productData != null) {
-      setState(() {
-        _productNameController.text = productData['productName'];
-        isExpired = productData['expired'];
-        _dateController.text = productData['expiryDate'] ?? '';
-        _productImageController.text = productData['productImage'] ?? '';
-        isProductFound = true;
-      });
+    if (token != null) {
+      // Fetch product details with Authorization header
+      final productData =
+          await _productService.fetchProductDetails(barcode, 'Bearer $token');
+
+      if (productData != null) {
+        setState(() {
+          _productNameController.text = productData['productName'];
+          isExpired = productData['expired'];
+          _dateController.text = productData['expiryDate'] ?? '';
+          _productImageController.text = productData['productImage'] ?? '';
+          isProductFound = true;
+        });
+      } else {
+        setState(() {
+          isProductFound = false;
+        });
+        _showAlert('Product not found', 'Please add the product');
+      }
     } else {
-      setState(() {
-        isProductFound = false;
-      });
-      _showAlert('Product not found', 'Please add the product');
+      _showAlert('Authorization Error', 'Please login to proceed');
     }
   }
 
   Future<void> _addProduct() async {
-    final productData = {
-      'productName': _productNameController.text,
-      'productBarcode': int.tryParse(_barcodeController.text) ?? 0,
-      'productImage': _productImageController.text,
-      'expired': isExpired,
-      'expiryDate': isExpired ? _dateController.text : null,
-    };
+    String? token = await _getToken();
 
-    final success = await _productService.addProduct(productData);
-    if (success) {
-      _showAlert('Success', 'Product added successfully');
+    if (token != null) {
+      final productData = {
+        'productName': _productNameController.text,
+        'productBarcode': int.tryParse(_barcodeController.text) ?? 0,
+        'productImage': _productImageController.text,
+        'expired': isExpired,
+        'expiryDate': isExpired ? _dateController.text : null,
+      };
+
+      // Add product with Authorization header
+      final success =
+          await _productService.addProduct(productData, 'bearer $token');
+      if (success) {
+        _showAlert('Success', 'Product added successfully');
+      } else {
+        _showAlert('Error', 'Failed to add product');
+      }
     } else {
-      _showAlert('Error', 'Failed to add product');
+      _showAlert('Authorization Error', 'Please login to proceed');
     }
   }
 
   Future<void> _updateProduct() async {
-    final barcode = _barcodeController.text;
-    final productData = {
-      'productName': _productNameController.text,
-      'expired': isExpired,
-      'expiryDate': isExpired ? _dateController.text : null,
-    };
+    String? token = await _getToken();
 
-    final success = await _productService.updateProduct(barcode, productData);
-    if (success) {
-      _showAlert('Success', 'Product updated successfully');
+    if (token != null) {
+      final barcode = _barcodeController.text;
+      final productData = {
+        'productName': _productNameController.text,
+        'expired': isExpired,
+        'expiryDate': isExpired ? _dateController.text : null,
+      };
+
+      // Update product with Authorization header
+      final success = await _productService.updateProduct(
+          barcode, productData, 'Bearer $token');
+      if (success) {
+        _showAlert('Success', 'Product updated successfully');
+      } else {
+        _showAlert('Error', 'Failed to update product');
+      }
     } else {
-      _showAlert('Error', 'Failed to update product');
+      _showAlert('Authorization Error', 'Please login to proceed');
     }
+  }
+
+  Future<String?> _getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('jwtToken');
   }
 
   void _showAlert(String title, String message) {
@@ -238,7 +268,6 @@ class AddProductScreenState extends State<AddProductScreen> {
 
     if (picked != null) {
       setState(() {
-        // Format the selected date to 'dd-MM-yy'
         _dateController.text = DateFormat('dd-MM-yy').format(picked);
       });
     }

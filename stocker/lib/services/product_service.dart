@@ -4,7 +4,8 @@ import 'dart:convert';
 class ProductService {
   static const baseUrl = 'https://stocker-server.vercel.app/api';
 
-  Future<Map<String, dynamic>?> fetchProductDetails(String barcode) async {
+  Future<Map<String, dynamic>?> fetchProductDetails(
+      String barcode, String? token) async {
     final url = '$baseUrl/product/$barcode';
 
     try {
@@ -18,7 +19,8 @@ class ProductService {
     return null;
   }
 
-  Future<bool> addProduct(Map<String, dynamic> productData) async {
+  Future<bool> addProduct(
+      Map<String, dynamic> productData, String? token) async {
     const url = '$baseUrl/products';
 
     try {
@@ -34,7 +36,7 @@ class ProductService {
   }
 
   Future<bool> updateProduct(
-      String barcode, Map<String, dynamic> productData) async {
+      String barcode, Map<String, dynamic> productData, String? token) async {
     final url = '$baseUrl/product-update/$barcode';
 
     try {
