@@ -29,7 +29,7 @@ function AddProduct() {
     };
 
     axios
-      .post("http://localhost:5000/api/products", finalData)
+      .post(`${import.meta.env.VITE_API_URL}/api/products`, finalData)
       .then((response) => {
         console.log("Product submitted successfully:", response.data);
         alert("Product submitted successfully!");

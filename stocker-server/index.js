@@ -11,7 +11,7 @@ console.log("MONGODB_URI:", process.env.MONGODB_URI); // Debugging log
 const app = express();
 
 // Use CORS middleware to enable cross-origin requests
-app.use(cors());
+app.use(cors({ origin: [process.env.DASHBOARD_URL, process.env.MOBILE_URL] }));
 
 // Middleware to parse JSON
 app.use(express.json());
