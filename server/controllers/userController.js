@@ -48,11 +48,14 @@ exports.registerUser = async (req, res) => {
 
 // Login a user
 exports.loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { emailOrUsername, password } = req.body;
 
   try {
-    // Check if user exists
-    const user = await User.findOne({ email });
+    // Check if the user exists by either email or username
+    const user = await User.findOne({
+      $or: [{ email: emailOrUsername }, { username: emailOrUsername }],
+    });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

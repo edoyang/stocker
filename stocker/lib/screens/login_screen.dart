@@ -17,19 +17,20 @@ class LoginState extends State<Login> {
   final Logger _logger = Logger();
 
   // Controllers to capture user input
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _emailOrUsernameController =
+      TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   // Function to handle login button press
   Future<void> _handleLogin() async {
-    final String email = _emailController.text;
+    final String emailOrUsername = _emailOrUsernameController.text;
     final String password = _passwordController.text;
 
-    // Log email and password
-    _logger.i('email: $email');
+    // Log emailOrUsername and password
+    _logger.i('emailOrUsername: $emailOrUsername');
     _logger.i('Password: $password');
 
-    if (email.isNotEmpty && password.isNotEmpty) {
+    if (emailOrUsername.isNotEmpty && password.isNotEmpty) {
       try {
         // Construct the login request
         final response = await http.post(
@@ -38,7 +39,7 @@ class LoginState extends State<Login> {
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: jsonEncode(<String, String>{
-            'email': email,
+            'emailOrUsername': emailOrUsername,
             'password': password,
           }),
         );
@@ -54,8 +55,8 @@ class LoginState extends State<Login> {
           final Map<String, dynamic> responseData = jsonDecode(response.body);
 
           // Log the JWT token and username
-          // _logger.i('JWT Token: ${responseData['token']}');
-          // _logger.i('Username: ${responseData['user']['username']}');
+          _logger.i('JWT Token: ${responseData['token']}');
+          _logger.i('Username: ${responseData['user']['username']}');
 
           // Save the token and username using SharedPreferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -118,11 +119,11 @@ class LoginState extends State<Login> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Email field
+            // emailOrUsername field
             TextField(
-              controller: _emailController,
+              controller: _emailOrUsernameController,
               decoration: const InputDecoration(
-                labelText: 'Email',
+                labelText: "Email or Username",
                 border: OutlineInputBorder(),
               ),
             ),
