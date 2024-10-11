@@ -1,40 +1,35 @@
 import axios from "axios";
 import React from "react";
-import { useDispatch } from "react-redux"; // Import Redux dispatch
-import { useNavigate } from "react-router-dom"; // Import navigation
-import { loginSuccess } from "../../redux/slices/authSlice"; // Import your login action
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loginSuccess } from "../../redux/slices/authSlice";
 
 const Login = () => {
-  const dispatch = useDispatch(); // Redux dispatch function
-  const navigate = useNavigate(); // For navigation
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // Use async/await for better error handling and clarity
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
 
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/user/login`,
         {
-          emailOrUsername: e.target.emailOrUsername.value, // Grabbing email input value
-          password: e.target.password.value, // Grabbing password input value
+          emailOrUsername: e.target.emailOrUsername.value,
+          password: e.target.password.value,
         }
       );
 
-      // Extract token and user data from the response
       const { token, user } = response.data;
 
-      // Store the token and user in Redux
+      // Store the token and user in Redux and localStorage
       dispatch(loginSuccess({ token, user }));
-
-      // Optionally store the token in localStorage
       localStorage.setItem("jwtToken", token);
 
-      console.log("Login successful:", response.data);
       alert("Login successful!");
 
       // Redirect to the home page
-      navigate("/");
+      navigate("/"); // Redirect to Home after login
     } catch (error) {
       console.error("There was an error logging in:", error);
       alert("Login failed. Please check your credentials.");
