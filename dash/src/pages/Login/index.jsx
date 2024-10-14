@@ -1,12 +1,15 @@
 import axios from "axios";
-import React from "react";
+import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginSuccess } from "../../redux/slices/authSlice";
+import { useSelector } from "react-redux";
+import "./style.css";
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const token = useSelector((state) => state.auth.token);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,32 +25,30 @@ const Login = () => {
 
       const { token, user } = response.data;
 
-      // Store the token and user in Redux and localStorage
       dispatch(loginSuccess({ token, user }));
-      localStorage.setItem("jwtToken", token);
 
       alert("Login successful!");
-
-      // Redirect to the home page
-      navigate("/"); // Redirect to Home after login
+      navigate("/");
     } catch (error) {
       console.error("There was an error logging in:", error);
       alert("Login failed. Please check your credentials.");
     }
   };
 
+  useEffect(() => {
+    if (token) {
+      navigate("/");
+    }
+  }, [token, navigate]);
+
   return (
-    <div>
+    <div className="login-page">
       <h1>Login</h1>
       <form onSubmit={handleSubmit}>
-        <label>
-          Email or Username:
-          <input type="text" name="emailOrUsername" required />
-        </label>
-        <label>
-          Password:
-          <input type="password" name="password" required />
-        </label>
+        <label>Email or Username:</label>
+        <input type="text" name="emailOrUsername" required />
+        <label>Password:</label>
+        <input type="password" name="password" required />
         <button type="submit">Login</button>
       </form>
     </div>
