@@ -9,6 +9,7 @@ import {
 import axios from "axios";
 
 function AddProduct() {
+  const token = useSelector((state) => state.auth.token);
   const dispatch = useDispatch();
   const { productName, productBarcode, productImage } = useSelector(
     (state) => state.product
@@ -37,9 +38,12 @@ function AddProduct() {
     };
 
     axios
-      .post(`${import.meta.env.VITE_API_URL}/api/products`, finalData)
+      .post(`${import.meta.env.VITE_API_URL}/api/products`, finalData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
-        console.log("Product submitted successfully:", response.data);
         alert("Product submitted successfully!");
       })
       .catch((error) => {

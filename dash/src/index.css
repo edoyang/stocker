@@ -1,8 +1,12 @@
 :root {
+  padding: 15px;
+
+  /* CSS variables */
   --color-text: #213547;
   --color-background: #ffffff;
   --button-background: #f9f9f9;
   --button-border-hover: #646cff;
+  --button-text: #ffffff;
 }
 
 .dark {
@@ -10,6 +14,7 @@
   --color-background: #242424;
   --button-background: #1a1a1a;
   --button-border-hover: #535bf2;
+  --button-text: #ffffff;
 }
 
 /* Apply the CSS variables */
@@ -25,10 +30,7 @@ a {
   font-weight: 500;
   color: var(--button-border-hover);
   text-decoration: inherit;
-}
-
-a:hover {
-  color: #747bff;
+  color: var(--color-text);
 }
 
 h1 {
@@ -46,14 +48,23 @@ button {
   background-color: var(--button-background);
   color: var(--color-text);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s forward, color 0.25s forward;
 }
 
-button:hover {
+input {
+  background-color: var(--button-background);
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+  border-radius: 4px;
+  padding: 0.25rem;
+}
+
+button:hover,
+button:focus-visible {
   border-color: var(--button-border-hover);
 }
 
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+button:active {
+  background-color: var(--button-border-hover);
+  color: var(--button-text);
 }

@@ -8,21 +8,15 @@ const Navbar = () => {
   const token = useSelector(
     (state) => state.auth?.token || localStorage.getItem("jwtToken")
   );
+  const username = useSelector((state) => state.auth?.user?.username);
 
   return (
-    <div>
-      <Link to="/">Home</Link>
-
-      {token ? (
-        <>
-          <Link to="/add-product">Add Product</Link>
-          <Logout />
-        </>
-      ) : (
-        <Link to="/login">Login</Link>
-      )}
-
+    <div className="navbar">
+      <Link className="logo" to="/">
+        <h2>Hello {username}</h2>
+      </Link>
       <Theme />
+      <Link to="/products">Products</Link>
     </div>
   );
 };

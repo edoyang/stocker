@@ -5,6 +5,7 @@ import AddProduct from "./pages/AddProduct";
 import Login from "./pages/Login";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import the ProtectedRoute component
+import ProductPage from "./pages/ProductPage";
 
 function App() {
   return (
@@ -17,7 +18,7 @@ function App() {
           path="/add-product"
           element={<ProtectedRoute Component={AddProduct} />}
         />
-        <Route path="/test" element={<ProtectedRoute Component={Login} />} />
+        <Route path="/products" element={<ProtectedRoute Component={ProductPage} />} />
       </Routes>
     </>
   );
